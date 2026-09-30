@@ -1576,10 +1576,15 @@ Details:
 **Business Rules:** BR-active-weeks, BR-evaluation-submission-window, BR-team-assignment-required, BR-student-lifecycle
 
 **Associated Information:**
-- 
+- The scheduler uses the configured application timezone and existing ISO week keys to determine the current date, due items, and relevant submission week.
+- WAR reminders may run during inactive weeks. Peer-evaluation reminders concern the previous week only when that evaluated week is active and its submission window is open.
+- Reminder candidates are enrolled students with active accounts and valid email addresses. Students without a team are excluded because they cannot submit either item (BR-team-assignment-required).
+- The system reads authoritative submission status without modifying submissions. A successful email-service call represents attempted delivery; actual mailbox receipt is not guaranteed.
+- The reminder email lists only the recipient's missing items and their configured due times. It contains no peer-evaluation results, comments, or other students' data.
+- Individual status-read or email failures are logged without preventing other students or course sections from being processed. A scheduler rerun may send another reminder unless a separate delivery-history or idempotency policy is introduced.
 
 **Related Use Cases:** 
-**Assumptions:** 
+**Assumptions:** The scheduler executes once per deployment run. Multi-instance coordination and duplicate-run prevention are deployment concerns outside this use case. The email service's successful return is treated as an attempted delivery rather than confirmed mailbox receipt.
 **Open Issues:**
 
 ## **Instructor**
