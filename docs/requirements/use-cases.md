@@ -1522,6 +1522,71 @@ Details:
 **Assumptions:**
 **Open Issues:**
 
+### **UC-STU-remind-students-with-missing-submissions: Send Reminders to Students With Missing Submissions**
+
+**UC ID and Name:** UC-STU-remind-students-with-missing-submissions: Send Reminders to Students With Missing Submissions
+**Created By:** 
+**Date Created:**
+**Primary Actor:** Scheduler (system timer)
+**Secondary Actors:** Email service; Students (recipients)
+**Trigger:** The weekly reminders job runs on a day when a WAR report and/or peer evaluation is due for at least one course section.
+**Description:** The system checks, for each section with a submission due today. If the students have not yet submitted the WAR report and/or peer evaluation, then the system emails only those students a reminder listing exactly what is still outstanding and when it is due. Students who have completed everything by the due date receive no email.
+
+**Preconditions:**
+- PRE-1. Each section has a WAR due at a day/time and a peer evaluation due at a day/time configured.
+- PRE-2. Students are enrolled in their sections with valid email addresses.
+- PRE-3. The system can read each student's submission status for the current week.
+- PRE-4. The email service is available.
+
+**Postconditions:**
+- POST-1. Every student with at least one outstanding WAR or peer evaluation due today has received one reminder email naming only their missing WAR or peer evaluation and due times.
+- POST-2. Students with no outstanding WAR or peer evaluation due today have received no email.
+- POST-3. The number of reminders sent out of the total students is logged for each section, and any failures are logged.
+
+**Main Success Scenario:**
+1. The scheduler starts the weekly reminder job.
+2. The system determines today's day and finds the sections with a WAR report and/or peer evaluation due today.
+3. For each such section, the system retrieves the enrolled students.
+4. For each student, the system checks whether the WAR report and/or peer evaluation due today has been submitted for the current week.
+5. If every item due today is submitted, the system skips the student.
+6. Otherwise, the system builds a reminder that lists only the student's missing items and their due times.
+7. The system sends the reminder to the student through the email service.
+8. After all students in the section are processed, the system logs how many reminders were sent out of the total students.
+9. The system repeats steps 3-8 for the next section until all sections are processed.
+
+**Extensions:**
+- **2a. No section has a WAR report or peer evaluation due today:**
+  - 2a1. The system sends no emails.
+  - 2a2. Use case ends.
+- **3a. The system cannot retrieve the enrolled students.**
+  -3a1. The system logs the error. 
+  -3a2. Use case ends. 
+- **4a. A student's submission status cannot be read:**
+  - 4a1. The system logs the error for that student.
+  - 4a2. The system continues with the next student at step 4.
+- **7a. The email fails to send to a student:**
+  - 7a1. The system logs the failure with the student's email and section.
+  - 7a2. The system does not count the student as sent and continues with the next student at step 4.
+- **3-8a. An unexpected error occurs while processing a section:**
+  - 3-8a1. The system logs the error with the section name.
+  - 3-8a2. The system continues with the next section at step 3.
+
+**Priority:** Medium 
+**Frequency of Use:** Weekly (once per scheduled run, on the days submissions are due)
+**Business Rules:** BR-active-weeks, BR-evaluation-submission-window, BR-team-assignment-required, BR-student-lifecycle
+
+**Associated Information:**
+- The scheduler uses the configured application timezone and existing ISO week keys to determine the current date, due items, and relevant submission week.
+- WAR reminders may run during inactive weeks. Peer-evaluation reminders concern the previous week only when that evaluated week is active and its submission window is open.
+- Reminder candidates are enrolled students with active accounts and valid email addresses. Students without a team are excluded because they cannot submit either item (BR-team-assignment-required).
+- The system reads authoritative submission status without modifying submissions. A successful email-service call represents attempted delivery; actual mailbox receipt is not guaranteed.
+- The reminder email lists only the recipient's missing items and their configured due times. It contains no peer-evaluation results, comments, or other students' data.
+- Individual status-read or email failures are logged without preventing other students or course sections from being processed. A scheduler rerun may send another reminder unless a separate delivery-history or idempotency policy is introduced.
+
+**Related Use Cases:** 
+**Assumptions:** The scheduler executes once per deployment run. Multi-instance coordination and duplicate-run prevention are deployment concerns outside this use case. The email service's successful return is treated as an attempted delivery rather than confirmed mailbox receipt.
+**Open Issues:**
+
 ## **Instructor**
 
 ### **UC-INS-invite-instructors: The course admin invites instructors to register an account**
